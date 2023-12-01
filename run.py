@@ -7,12 +7,14 @@ import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from pydantic import ValidationError
 
+import tutorial.chapter03
 from coronavirus import application
 from tutorial import app03, app04, app05, app06, app07, app08
 
-# from fastapi.exceptions import RequestValidationError
-# from fastapi.responses import PlainTextResponse
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import PlainTextResponse,JSONResponse
 # from starlette.exceptions import HTTPException as StarletteHTTPException
 
 app = FastAPI(
@@ -37,23 +39,53 @@ app.mount(path='/static', app=StaticFiles(directory='./coronavirus/static'), nam
 #     return PlainTextResponse(str(exc.detail), status_code=exc.status_code)
 #
 #
-# @app.exception_handler(RequestValidationError)  # 重写请求验证异常处理器
-# async def validation_exception_handler(request, exc):
+
+
+# @app.exception_handler(ValidationError)  # 重写HTTPException异常处理器
+# async def http_exception_handler(request, exc):
+#     print("&&&"*90)
 #     """
 #     :param request: 这个参数不能省
 #     :param exc:
 #     :return:
 #     """
-#     return PlainTextResponse(str(exc), status_code=400)
+#     return PlainTextResponse(str(exc.detail), status_code=exc.status_code)
+# 1.用户自定义异常类型，只要该类继承了Exception类即可
+@app.exception_handler(tutorial.chapter03.ValDtoError)
+async def request_validation_exception_handler2(request: Request, exc: tutorial.chapter03.ValDtoError):
+    print(f"===>参数校验异常{request.method} {request.url}")
+    return JSONResponse({"message":exc.message})
+# @app.exception_handler(RequestValidationError)  # 重写请求验证异常处理器
+# async def validation_exception_handler(request, exc):
+#
+#     """
+#     :param request: 这个参数不能省
+#     :param exc:
+#     :return:
+#     """
+#     print("222"*10)
+#     # 自定义错误输出信息
+#     errors = []
+#     for error in exc.errors():
+#         print(error)
+#         print(type(error))
+#         errors.append({
+#             "loc": error["loc"],
+#             "msg": error["msg"],
+#             "type": error["type"]
+#         })
+#     # raise HTTPException(status_code=422, detail=errors)
+#
+#     return PlainTextResponse(str(errors), status_code=400)
 
 
-@app.middleware('http')
-async def add_process_time_header(request: Request, call_next):  # call_next将接收request请求做为参数
-    start_time = time.time()
-    response = await call_next(request)
-    process_time = time.time() - start_time
-    response.headers['X-Process-Time'] = str(process_time)  # 添加自定义的以“X-”开头的请求头
-    return response
+# @app.middleware('http')
+# async def add_process_time_header(request: Request, call_next):  # call_next将接收request请求做为参数
+#     start_time = time.time()
+#     response = await call_next(request)
+#     process_time = time.time() - start_time
+#     response.headers['X-Process-Time'] = str(process_time)  # 添加自定义的以“X-”开头的请求头
+#     return response
 
 
 app.add_middleware(

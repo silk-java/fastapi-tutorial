@@ -4,10 +4,10 @@
 
 from datetime import date
 from enum import Enum
-from typing import Optional, List
+from typing import Optional, List, Annotated
 
 from fastapi import APIRouter, Query, Path, Body, Cookie, Header
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, BeforeValidator
 
 app03 = APIRouter()
 
@@ -45,7 +45,7 @@ def filepath(file_path: str):
 
 @app03.get("/path_/{num}")
 def path_params_validate(
-    num: int = Path(..., title="Your Number", description="不可描述", ge=1, le=10),
+        num: int = Path(..., title="Your Number", description="不可描述", ge=1, le=10),
 ):
     return num
 
@@ -65,15 +65,31 @@ def type_conversion(param: bool = False):
     return param
 
 
+class ValDtoError(Exception):
+    # 初始化
+    def __init__(self, message):
+        self.message = message
+
+    # 类一般返回值
+    def __str__(self):
+        return "参数校验异常！" + self.message
+
+
 @app03.get("/query/validations")  # 长度+正则表达式验证，比如长度8-16位，以a开头。其它校验方法看Query类的源码
 def query_params_validate(
-    value: str = Query(..., min_length=8, max_length=16, regex="^a"),  # ...换成None就变成选填的参数
-    values: List[str] = Query(["v1", "v2"], alias="alias_name")
+        value: str = Query(..., min_length=8, max_length=16, regex="^a"),  # ...换成None就变成选填的参数
+        values: List[str] = Query(["v1", "v2"], alias="alias_name")
 ):  # 多个查询参数的列表。参数别名
     return value, values
 
 
 """Request Body and Fields 请求体和字段"""
+
+
+def curr_page_v(v: int) -> int:
+    if 111 > v:
+        raise ValDtoError('开始页不能小于0!')
+    return v
 
 
 class CityInfo(BaseModel):
@@ -82,6 +98,8 @@ class CityInfo(BaseModel):
     country_code: str = None  # 给一个默认值
     country_population: int = Field(default=800, title="人口数量", description="国家的人口数量", ge=800)
 
+    currPage: Annotated[int, BeforeValidator(curr_page_v)]
+
     class Config:
         schema_extra = {
             "example": {
@@ -89,6 +107,7 @@ class CityInfo(BaseModel):
                 "country": "China",
                 "country_code": "CN",
                 "country_population": 1400000000,
+                "price": "210.0"
             }
         }
 
@@ -104,11 +123,11 @@ def city_info(city: CityInfo):
 
 @app03.put("/request_body/city/{name}")
 def mix_city_info(
-    name: str,
-    city01: CityInfo,
-    city02: CityInfo,  # Body可以是多个的
-    confirmed: int = Query(ge=0, description="确诊数", default=0),
-    death: int = Query(ge=0, description="死亡数", default=0),
+        name: str,
+        city01: CityInfo,
+        city02: CityInfo,  # Body可以是多个的
+        confirmed: int = Query(ge=0, description="确诊数", default=0),
+        death: int = Query(ge=0, description="死亡数", default=0),
 ):
     if name == "Shanghai":
         return {"Shanghai": {"confirmed": confirmed, "death": death}}
@@ -117,9 +136,9 @@ def mix_city_info(
 
 @app03.put("/request_body/multiple/parameters")
 def body_multiple_parameters(
-    city: CityInfo = Body(..., embed=True),  # 当只有一个Body参数的时候，embed=True表示请求体参数嵌套。多个Body参数默认就是嵌套的
-    confirmed: int = Query(ge=0, description="确诊数", default=0),
-    death: int = Query(ge=0, description="死亡数", default=0),
+        city: CityInfo = Body(..., embed=True),  # 当只有一个Body参数的时候，embed=True表示请求体参数嵌套。多个Body参数默认就是嵌套的
+        confirmed: int = Query(ge=0, description="确诊数", default=0),
+        death: int = Query(ge=0, description="死亡数", default=0),
 ):
     print(f"{city.name} 确诊数：{confirmed} 死亡数：{death}")
     return city.dict()

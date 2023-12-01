@@ -1,4 +1,12 @@
 ## FastAPI 框架精讲
+
+# 如何设置虚拟环境
+1. cd 项目目录
+2. virtualenv venv
+3. cd venv/bin
+4. source activate
+5. cd 项目目录
+6. pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt
 > 整体的介绍 FastAPI，快速上手开发，结合 API 交互文档逐个讲解核心模块的使用
 
 ![drf-tutorial](./coronavirus/static/fastapi-tutorial.png)
@@ -347,4 +355,6 @@ FastAPI 项目中 Jinja2 配置，使用 Jinja2 渲染 COVID-19 查询页面，�
 
 #### 9.1 课程总结
 
-回顾课程内容与重难点，总结经验、心得以及扩展建议。
+回顾课程内容与重难点，总结经验、心得以及扩展建议。## 
+> 整体的介绍 FastAPI，快速上手开发，结合 API 交互文档逐个讲解核心模块的使用
+ 框架精讲## h 框架精讲
