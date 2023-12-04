@@ -3,7 +3,7 @@
 # __author__ = '__Jack__'
 
 from typing import Optional
-
+from bootstrap.logger import logger
 from fastapi import APIRouter
 from fastapi import Depends, HTTPException, Header
 
@@ -18,6 +18,7 @@ async def common_parameters(q: Optional[str] = None, page: int = 1, limit: int =
 
 @app05.get("/dependency01")
 async def dependency01(commons: dict = Depends(common_parameters)):
+    logger.info(f"commons:{ commons}")
     return commons
 
 
@@ -85,7 +86,8 @@ async def verify_key(x_key: str = Header(...)):
     return x_key
 
 
-@app05.get("/dependency_in_path_operation", dependencies=[Depends(verify_token), Depends(verify_key)])  # 这时候不是在函数参数中调用依赖，而是在路径操作中
+@app05.get("/dependency_in_path_operation",
+           dependencies=[Depends(verify_token), Depends(verify_key)])  # 这时候不是在函数参数中调用依赖，而是在路径操作中
 async def dependency_in_path_operation():
     return [{"user": "user01"}, {"user": "user02"}]
 

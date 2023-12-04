@@ -5,7 +5,7 @@
 from datetime import date
 from enum import Enum
 from typing import Optional, List, Annotated
-
+from bootstrap.logger import logger
 from fastapi import APIRouter, Query, Path, Body, Cookie, Header
 from pydantic import BaseModel, Field, BeforeValidator, field_validator
 
@@ -21,6 +21,7 @@ def path_params01():
 
 @app03.get("/path/{parameters}")  # 函数的顺序就是路由的顺序
 def path_prams02(parameters: str):
+    logger.info(f"message:{parameters}")
     return {"message": parameters}
 
 
