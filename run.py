@@ -55,28 +55,27 @@ app.mount(path='/static', app=StaticFiles(directory='./coronavirus/static'), nam
 async def request_validation_exception_handler2(request: Request, exc: tutorial.chapter03.ValDtoError):
     print(f"===>参数校验异常{request.method} {request.url}")
     return JSONResponse({"message":exc.message})
-# @app.exception_handler(RequestValidationError)  # 重写请求验证异常处理器
-# async def validation_exception_handler(request, exc):
-#
-#     """
-#     :param request: 这个参数不能省
-#     :param exc:
-#     :return:
-#     """
-#     print("222"*10)
-#     # 自定义错误输出信息
-#     errors = []
-#     for error in exc.errors():
-#         print(error)
-#         print(type(error))
-#         errors.append({
-#             "loc": error["loc"],
-#             "msg": error["msg"],
-#             "type": error["type"]
-#         })
-#     # raise HTTPException(status_code=422, detail=errors)
-#
-#     return PlainTextResponse(str(errors), status_code=400)
+@app.exception_handler(RequestValidationError)  # 重写请求验证异常处理器
+async def validation_exception_handler(request, exc):
+
+    """
+    :param request: 这个参数不能省
+    :param exc:
+    :return:
+    """
+    errors = []
+    for error in exc.errors():
+        print(error)
+        print(type(error))
+        errors.append({
+            "loc": error["loc"],
+            "msg": error["msg"],
+            "type": error["type"]
+        })
+    # raise HTTPException(status_code=422, detail=errors)
+    return JSONResponse({"code":402,"msg":errors[0]['msg'],"errors":errors})
+
+    # return PlainTextResponse(str(errors), status_code=400)
 
 
 # @app.middleware('http')

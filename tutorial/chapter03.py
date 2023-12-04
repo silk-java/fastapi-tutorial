@@ -7,7 +7,7 @@ from enum import Enum
 from typing import Optional, List, Annotated
 
 from fastapi import APIRouter, Query, Path, Body, Cookie, Header
-from pydantic import BaseModel, Field, BeforeValidator
+from pydantic import BaseModel, Field, BeforeValidator, field_validator
 
 app03 = APIRouter()
 
@@ -100,6 +100,16 @@ class CityInfo(BaseModel):
 
     currPage: Annotated[int, BeforeValidator(curr_page_v)]
 
+    @field_validator('name')
+    def name_validator(cls, v):
+        assert v.startswith('a'), "name必须以a开头"
+        return v
+
+    @field_validator('country')
+    def country(cls, v):
+        if ' ' not in v:
+            raise ValueError('country必须包含空格')
+        return v
     class Config:
         schema_extra = {
             "example": {
