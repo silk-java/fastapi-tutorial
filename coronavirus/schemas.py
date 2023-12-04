@@ -29,7 +29,7 @@ class ReadData(CreateData):
     created_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class ReadCity(CreateCity):
@@ -38,4 +38,4 @@ class ReadCity(CreateCity):
     created_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True

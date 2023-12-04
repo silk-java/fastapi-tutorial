@@ -21,13 +21,48 @@ app = FastAPI(
     title='FastAPI Tutorial and Coronavirus Tracker API Docs',
     description='FastAPI教程 新冠病毒疫情跟踪器API接口文档，项目代码：https://github.com/liaogx/fastapi-tutorial',
     version='1.0.0',
-    docs_url='/docs',
-    redoc_url='/redocs',
+    docs_url=None,
+    redoc_url=None,
 )
 
 # mount表示将某个目录下一个完全独立的应用挂载过来，这个不会在API交互文档中显示
-app.mount(path='/static', app=StaticFiles(directory='./coronavirus/static'), name='static')  # .mount()不要在分路由APIRouter().mount()调用，模板会报错
+# app.mount(path='/static', app=StaticFiles(directory='./coronavirus/static'), name='static')  # .mount()不要在分路由APIRouter().mount()调用，模板会报错
 
+# ========设置docs文档为本地文件=========
+from fastapi.staticfiles import StaticFiles
+from fastapi.openapi.docs import (
+    get_redoc_html,
+    get_swagger_ui_html,
+    get_swagger_ui_oauth2_redirect_html,
+)
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+
+
+@app.get("/docs", include_in_schema=False)
+async def custom_swagger_ui_html():
+    return get_swagger_ui_html(
+        openapi_url=app.openapi_url,
+        title=app.title + " - Swagger UI",
+        oauth2_redirect_url=app.swagger_ui_oauth2_redirect_url,
+        swagger_js_url="/static/swagger-ui-bundle.js",
+        swagger_css_url="/static/swagger-ui.css",
+    )
+
+
+@app.get(app.swagger_ui_oauth2_redirect_url, include_in_schema=False)
+async def swagger_ui_redirect():
+    return get_swagger_ui_oauth2_redirect_html()
+
+
+@app.get("/redoc", include_in_schema=False)
+async def redoc_html():
+    return get_redoc_html(
+        openapi_url=app.openapi_url,
+        title=app.title + " - ReDoc",
+        redoc_js_url="/static/redoc.standalone.js",
+    )
+# ========设置docs文档为本地文件=========
 
 # @app.exception_handler(StarletteHTTPException)  # 重写HTTPException异常处理器
 # async def http_exception_handler(request, exc):
@@ -41,20 +76,6 @@ app.mount(path='/static', app=StaticFiles(directory='./coronavirus/static'), nam
 #
 
 
-# @app.exception_handler(ValidationError)  # 重写HTTPException异常处理器
-# async def http_exception_handler(request, exc):
-#     print("&&&"*90)
-#     """
-#     :param request: 这个参数不能省
-#     :param exc:
-#     :return:
-#     """
-#     return PlainTextResponse(str(exc.detail), status_code=exc.status_code)
-# 1.用户自定义异常类型，只要该类继承了Exception类即可
-@app.exception_handler(tutorial.chapter03.ValDtoError)
-async def request_validation_exception_handler2(request: Request, exc: tutorial.chapter03.ValDtoError):
-    print(f"===>参数校验异常{request.method} {request.url}")
-    return JSONResponse({"message":exc.message})
 @app.exception_handler(RequestValidationError)  # 重写请求验证异常处理器
 async def validation_exception_handler(request, exc):
 

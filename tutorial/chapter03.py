@@ -77,7 +77,7 @@ class ValDtoError(Exception):
 
 @app03.get("/query/validations")  # 长度+正则表达式验证，比如长度8-16位，以a开头。其它校验方法看Query类的源码
 def query_params_validate(
-        value: str = Query(..., min_length=8, max_length=16, regex="^a"),  # ...换成None就变成选填的参数
+        value: str = Query(..., min_length=8, max_length=16, pattern="^a"),  # ...换成None就变成选填的参数
         values: List[str] = Query(["v1", "v2"], alias="alias_name")
 ):  # 多个查询参数的列表。参数别名
     return value, values
@@ -111,7 +111,7 @@ class CityInfo(BaseModel):
             raise ValueError('country必须包含空格')
         return v
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "name": "Shanghai",
                 "country": "China",
